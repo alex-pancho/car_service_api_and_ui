@@ -16,20 +16,6 @@ schema_view = get_schema_view(
     authentication_classes=[],
 )
 
-# # Додайте кастомну обгортку для автоматичного додавання Bearer
-# from functools import wraps
-# from django.utils.decorators import method_decorator
-
-# def add_bearer_prefix(view_func):
-#     @wraps(view_func)
-#     def wrapper(request, *args, **kwargs):
-#         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-#         if auth_header and not auth_header.startswith('Bearer '):
-#             request.META['HTTP_AUTHORIZATION'] = f'Bearer {auth_header}'
-#         return view_func(request, *args, **kwargs)
-#     return wrapper
-
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include("users.urls_auth")),

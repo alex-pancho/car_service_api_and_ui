@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Brand, CarModel, Car
+from .models import Brand, CarModel, Car, Service
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,3 +47,15 @@ class CarSerializer(serializers.ModelSerializer):
             instance.mileage = validated_data["mileage"]
         instance.save()
         return instance
+
+class ServiceSerializer(serializers.ModelSerializer):
+    car_info = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = Service
+        fields = ['id', 'car', 'car_info', 'work_description', 'hours', 
+                  'status', 'scheduled_date', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+    
+    def get_car_info(self, obj):
+        return f"{obj.car.car_brand.title} {obj.car.car_model.title}"

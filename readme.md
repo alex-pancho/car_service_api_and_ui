@@ -1,6 +1,5 @@
-# install
-
-виконай:
+# Початкове розгортання
+Виконай:
 ```
 python -m venv .venv
 source .venv/bin/activate     # або .venv\Scripts\activate на Windows
@@ -9,7 +8,7 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 ```
-run
+Запуск:
 ```
 python manage.py runserver
 ```

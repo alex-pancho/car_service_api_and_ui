@@ -87,7 +87,7 @@
                 <div class="flex items-center justify-between mb-6">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900">Обслуговування</h2>
-                        <p id="selectedCarInfo" class="text-gray-600"></p>
+                        <p id="selectedCarInfo" class="text-gray-600 mt-1"></p>
                     </div>
                     <button onclick="showAddServiceModal()" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors shadow-lg">
                         🔧 Додати роботу
@@ -237,7 +237,6 @@
                 const select = document.getElementById('carBrand');
                 select.innerHTML = '<option value="">Оберіть бренд</option>';
                 
-                // Використовуємо response.results замість response
                 response.results.forEach(brand => {
                     select.innerHTML += `<option value="${brand.id}">${brand.title}</option>`;
                 });
@@ -274,17 +273,27 @@
                 const container = document.getElementById('carsList');
                 
                 if (response.results.length === 0) {
-                    container.innerHTML = '<p>Немає автомобілів</p>';
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Немає автомобілів. Додайте свій перший автомобіль!</p>';
                     return;
                 }
                 
                 const carsHTML = response.results.map(car => `
-                    <div class="car-card">
-                        <img src="${car.logo}" alt="${car.brand}">
-                        <h3>${car.brand} ${car.model}</h3>
-                        <p>Пробіг: ${car.mileage} км</p>
-                        <p>Початковий пробіг: ${car.initial_mileage} км</p>
-                        <p>Оновлено: ${new Date(car.updated_mileage_at).toLocaleDateString('uk-UA')}</p>
+                    <div onclick="selectCar(${car.id})" class="border-2 ${selectedCarId === car.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'} rounded-xl p-5 cursor-pointer hover:shadow-lg transition-all">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">${car.logo || '🚗'}</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-xl text-gray-900">${car.brand} ${car.model}</h3>
+                                <div class="mt-2 space-y-1 text-sm text-gray-600">
+                                    <p>📊 Поточний пробіг: <span class="font-semibold">${car.mileage} км</span></p>
+                                    <p>🏁 Початковий: ${car.initial_mileage} км</p>
+                                    <p>📅 Оновлено: ${new Date(car.updated_mileage_at).toLocaleDateString('uk-UA')}</p>
+                                </div>
+                            </div>
+                            <button onclick="deleteCar(${car.id}, event)" class="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors">
+                                🗑️
+                            </button>
+                        </div>
+                        ${selectedCarId === car.id ? '<div class="mt-3 pt-3 border-t border-indigo-200 text-indigo-600 text-sm font-medium">✓ Обрано</div>' : ''}
                     </div>
                 `).join('');
                 
@@ -296,9 +305,17 @@
 
         async function loadServices(carId) {
             try {
-                const services = await apiCall(`/cars/services/?car=${carId}`);
+                const response = await apiCall(`/cars/services/?car=${carId}`);
+                const services = response.results || response;
                 const container = document.getElementById('servicesList');
                 container.innerHTML = '';
+                
+                // Знайти інформацію про обране авто
+                const carsResponse = await apiCall('/cars/');
+                const selectedCar = carsResponse.results.find(car => car.id === carId);
+                if (selectedCar) {
+                    document.getElementById('selectedCarInfo').textContent = `${selectedCar.brand} ${selectedCar.model} (${selectedCar.mileage} км)`;
+                }
                 
                 if (services.length === 0) {
                     container.innerHTML = '<p class="text-gray-500 text-center py-8">Немає робіт. Додайте нове обслуговування!</p>';
@@ -309,12 +326,6 @@
                     'pending': 'bg-yellow-100 text-yellow-800',
                     'in_progress': 'bg-blue-100 text-blue-800',
                     'completed': 'bg-green-100 text-green-800'
-                };
-                
-                const statusLabels = {
-                    'pending': 'Очікує',
-                    'in_progress': 'В роботі',
-                    'completed': 'Виконано'
                 };
                 
                 services.forEach(service => {
@@ -348,13 +359,14 @@
         // Actions
         function selectCar(carId) {
             selectedCarId = carId;
-            loadCars();
+            loadCars(); // Перезавантажити список авто для оновлення виділення
             loadServices(carId);
             
-            const car = document.querySelector(`[onclick="selectCar(${carId})"]`);
-            const carInfo = car.querySelector('h3').textContent;
-            document.getElementById('selectedCarInfo').textContent = `Автомобіль: ${carInfo}`;
+            // Показати секцію сервісів
             document.getElementById('servicesSection').classList.remove('hidden');
+            
+            // Прокрутити до секції сервісів
+            document.getElementById('servicesSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         async function addCar() {

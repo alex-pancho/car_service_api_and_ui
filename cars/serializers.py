@@ -23,19 +23,26 @@ class CarSerializer(serializers.ModelSerializer):
         fields = ("id","carBrandId","carModelId","initial_mileage","updated_mileage_at","mileage","brand","model","logo")
 
     def create(self, validated_data):
-        user = self.context["request"].user
-        car_brand = validated_data.pop("car_brand")
-        car_model = validated_data.pop("car_model")
-        mileage = validated_data.get("initial_mileage") or validated_data.get("mileage", 0)
-        car = Car.objects.create(
-            owner=user,
-            car_brand=car_brand,
-            car_model=car_model,
-            initial_mileage=mileage,
-            mileage=mileage,
-            **{k:v for k,v in validated_data.items() if k not in ("initial_mileage","mileage")}
-        )
-        return car
+            user = self.context["request"].user
+            car_brand = validated_data.pop("car_brand")
+            car_model = validated_data.pop("car_model")
+            
+            # Видаляємо owner, якщо він є
+            validated_data.pop("owner", None)
+            
+            # Встановлюємо mileage
+            initial_mileage = validated_data.pop("initial_mileage", 0)
+            mileage = validated_data.pop("mileage", 0)
+            
+            car = Car.objects.create(
+                owner=user,
+                car_brand=car_brand,
+                car_model=car_model,
+                initial_mileage=initial_mileage,
+                mileage=mileage,
+                **validated_data
+            )
+            return car
 
     def update(self, instance, validated_data):
         # allow updating mileage and brand/model

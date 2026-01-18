@@ -1,0 +1,30 @@
+<!-- frontend/templates/components/app_header.html -->
+
+<header id="app-header" class="app-header">
+    <div class="header-container">
+        <!-- Logo Section -->
+        <div class="header-logo-section">
+            <div class="logo-icon">
+                🚗
+            </div>
+            <div class="logo-text">
+                <h1 class="header-title">Автосервіс</h1>
+                <p class="header-subtitle">Управління обслуговуванням</p>
+            </div>
+        </div>
+        
+        <!-- User Info Section -->
+        <div class="header-user-section">
+            <span id="user-info" class="user-info">
+                👤 Користувач
+            </span>
+            <button 
+                id="logout-btn" 
+                class="btn btn-danger"
+                onclick="handleLogout()"
+                title="Вийти з системи">
+                Вийти
+            </button>
+        </div>
+    </div>
+</header>

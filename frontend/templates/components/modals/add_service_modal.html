@@ -1,0 +1,96 @@
+<!-- frontend/templates/components/modals/add_service_modal.html -->
+
+<div id="add-service-modal" class="modal">
+    <div class="modal-content modal-content-md">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                🔧 Додати роботу
+            </h3>
+            <button 
+                class="modal-close-btn"
+                onclick="closeModal('add-service-modal')"
+                title="Закрити">
+                ✕
+            </button>
+        </div>
+        
+        <form id="add-service-form" class="modal-form" onsubmit="handleAddService(event)">
+            
+            <!-- Work Description -->
+            <div class="form-group">
+                <label for="work-description-input" class="form-label">
+                    📝 Опис роботи
+                </label>
+                <input 
+                    type="text" 
+                    id="work-description-input" 
+                    name="description"
+                    class="form-control"
+                    placeholder="Наприклад: Заміна масла, фільтрів, тощо..."
+                    required>
+            </div>
+            
+            <!-- Work Hours -->
+            <div class="form-group">
+                <label for="work-hours-input" class="form-label">
+                    ⏱️ Години роботи
+                </label>
+                <input 
+                    type="number" 
+                    id="work-hours-input" 
+                    name="hours"
+                    class="form-control"
+                    step="0.5"
+                    min="0.5"
+                    value="1"
+                    required>
+            </div>
+            
+            <!-- Scheduled Date -->
+            <div class="form-group">
+                <label for="scheduled-date-input" class="form-label">
+                    📅 Дата
+                </label>
+                <input 
+                    type="date" 
+                    id="scheduled-date-input" 
+                    name="scheduled_date"
+                    class="form-control"
+                    required>
+            </div>
+            
+            <!-- Cost (Optional) -->
+            <div class="form-group">
+                <label for="work-cost-input" class="form-label">
+                    💰 Вартість (грн)
+                </label>
+                <input 
+                    type="number" 
+                    id="work-cost-input" 
+                    name="cost"
+                    class="form-control"
+                    step="10"
+                    min="0"
+                    placeholder="0.00">
+            </div>
+            
+            <!-- Error Message -->
+            <div id="add-service-error" class="alert alert-error hidden"></div>
+            
+            <!-- Form Actions -->
+            <div class="modal-footer">
+                <button 
+                    type="button" 
+                    class="btn btn-secondary"
+                    onclick="closeModal('add-service-modal')">
+                    Скасувати
+                </button>
+                <button 
+                    type="submit" 
+                    class="btn btn-success">
+                    Додати роботу
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+<!-- frontend/templates/components/car_card.html -->
+
+<!-- Цей компонент генерується динамічно JavaScript, але ось його структура для референцій -->
+
+<template id="car-card-template">
+    <div class="car-card" data-car-id="[CAR_ID]" onclick="selectCar([CAR_ID])">
+        <!-- Car Icon -->
+        <div class="car-card-icon">
+            🚗
+        </div>
+        
+        <!-- Car Info -->
+        <div class="car-card-info">
+            <!-- Car Name -->
+            <h3 class="car-card-title">[BRAND] [MODEL]</h3>
+            
+            <!-- Car Details -->
+            <div class="car-card-details">
+                <div class="car-detail-row">
+                    <span class="detail-icon">📊</span>
+                    <span class="detail-label">Поточний пробіг:</span>
+                    <span class="detail-value">[MILEAGE] км</span>
+                </div>
+                
+                <div class="car-detail-row">
+                    <span class="detail-icon">🏁</span>
+                    <span class="detail-label">Початковий:</span>
+                    <span class="detail-value">[INITIAL_MILEAGE] км</span>
+                </div>
+                
+                <div class="car-detail-row">
+                    <span class="detail-icon">📅</span>
+                    <span class="detail-label">Оновлено:</span>
+                    <span class="detail-value">[UPDATED_DATE]</span>
+                </div>
+            </div>
+            
+            <!-- Car Status Badge (shown when selected) -->
+            <div class="car-card-status" id="status-[CAR_ID]">
+                ✓ Обрано
+            </div>
+        </div>
+        
+        <!-- Car Actions -->
+        <div class="car-card-actions">
+            <button 
+                class="btn-icon btn-delete"
+                onclick="deleteCar([CAR_ID], event)"
+                title="Видалити автомобіль">
+                🗑️
+            </button>
+        </div>
+    </div>
+</template>

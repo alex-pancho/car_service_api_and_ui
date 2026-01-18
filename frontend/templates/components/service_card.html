@@ -1,0 +1,53 @@
+<!-- frontend/templates/components/service_card.html -->
+
+<!-- Цей компонент генерується динамічно JavaScript, але ось його структура -->
+
+<template id="service-card-template">
+    <div class="service-card" data-service-id="[SERVICE_ID]">
+        
+        <!-- Service Content -->
+        <div class="service-card-content">
+            <!-- Service Title -->
+            <h4 class="service-card-title">[WORK_DESCRIPTION]</h4>
+            
+            <!-- Service Meta -->
+            <div class="service-card-meta">
+                <span class="meta-item">
+                    <span class="meta-icon">⏱️</span>
+                    <span class="meta-value">[HOURS] год</span>
+                </span>
+                
+                <span class="meta-item">
+                    <span class="meta-icon">📅</span>
+                    <span class="meta-value">[SCHEDULED_DATE]</span>
+                </span>
+                
+                <span class="meta-item" id="status-badge-[SERVICE_ID]">
+                    <span class="status-badge status-[STATUS]">[STATUS_TEXT]</span>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Service Actions -->
+        <div class="service-card-actions">
+            <!-- Status Select -->
+            <select 
+                id="status-select-[SERVICE_ID]"
+                class="status-select status-select-[STATUS]"
+                onchange="updateServiceStatus([SERVICE_ID], this.value)"
+                title="Змінити статус роботи">
+                <option value="pending">Очікує</option>
+                <option value="in_progress">В роботі</option>
+                <option value="completed">Виконано</option>
+            </select>
+            
+            <!-- Delete Button -->
+            <button 
+                class="btn-icon btn-delete"
+                onclick="deleteService([SERVICE_ID], event)"
+                title="Видалити роботу">
+                🗑️
+            </button>
+        </div>
+    </div>
+</template>

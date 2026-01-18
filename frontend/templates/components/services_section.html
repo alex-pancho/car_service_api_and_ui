@@ -1,0 +1,31 @@
+<!-- frontend/templates/components/services_section.html -->
+
+<section id="services-section" class="section-container hidden">
+    <div class="section-header">
+        <div class="section-title-group">
+            <h2 class="section-title">
+                🔧 Обслуговування
+            </h2>
+            <p id="selected-car-info" class="section-subtitle">
+                <!-- Car info will be loaded here -->
+            </p>
+        </div>
+        
+        <button 
+            id="add-service-btn" 
+            class="btn btn-success btn-lg"
+            onclick="openModal('add-service-modal')"
+            title="Додати нову роботу">
+            🔧 Додати роботу
+        </button>
+    </div>
+    
+    <!-- Services List -->
+    <div id="services-list" class="services-list">
+        <div class="services-empty-state">
+            <p class="empty-state-icon">🔧</p>
+            <p class="empty-state-text">Немає робіт</p>
+            <p class="empty-state-hint">Додайте нове обслуговування для цього автомобіля</p>
+        </div>
+    </div>
+</section>

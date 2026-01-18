@@ -1,0 +1,29 @@
+<!-- frontend/templates/components/cars_section.html -->
+
+<section id="cars-section" class="section-container">
+    <div class="section-header">
+        <div class="section-title-group">
+            <h2 class="section-title">
+                🚗 Мої автомобілі
+            </h2>
+            <span class="cars-count" id="cars-count">0 машин</span>
+        </div>
+        
+        <button 
+            id="add-car-btn" 
+            class="btn btn-primary btn-lg"
+            onclick="openModal('add-car-modal')"
+            title="Додати новий автомобіль">
+            ➕ Додати авто
+        </button>
+    </div>
+    
+    <!-- Cars Grid -->
+    <div id="cars-list" class="cars-grid">
+        <div class="cars-empty-state">
+            <p class="empty-state-icon">🚗</p>
+            <p class="empty-state-text">Немає автомобілів</p>
+            <p class="empty-state-hint">Додайте свій перший автомобіль для початку</p>
+        </div>
+    </div>
+</section>

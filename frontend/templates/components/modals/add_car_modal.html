@@ -1,0 +1,97 @@
+<!-- frontend/templates/components/modals/add_car_modal.html -->
+
+<div id="add-car-modal" class="modal">
+    <div class="modal-content modal-content-md">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                ➕ Додати автомобіль
+            </h3>
+            <button 
+                class="modal-close-btn"
+                onclick="closeModal('add-car-modal')"
+                title="Закрити">
+                ✕
+            </button>
+        </div>
+        
+        <form id="add-car-form" class="modal-form" onsubmit="handleAddCar(event)">
+            
+            <!-- Brand Select -->
+            <div class="form-group">
+                <label for="car-brand-select" class="form-label">
+                    🚗 Бренд
+                </label>
+                <select 
+                    id="car-brand-select" 
+                    name="carBrandId"
+                    class="form-control"
+                    onchange="loadCarModels()"
+                    required>
+                    <option value="">Оберіть бренд</option>
+                </select>
+            </div>
+            
+            <!-- Model Select -->
+            <div class="form-group">
+                <label for="car-model-select" class="form-label">
+                    🔧 Модель
+                </label>
+                <select 
+                    id="car-model-select" 
+                    name="carModelId"
+                    class="form-control"
+                    required>
+                    <option value="">Спочатку оберіть бренд</option>
+                </select>
+            </div>
+            
+            <!-- Initial Mileage -->
+            <div class="form-group">
+                <label for="initial-mileage-input" class="form-label">
+                    🏁 Початковий пробіг (км)
+                </label>
+                <input 
+                    type="number" 
+                    id="initial-mileage-input" 
+                    name="initial_mileage"
+                    class="form-control"
+                    min="0"
+                    value="0"
+                    required>
+            </div>
+            
+            <!-- Current Mileage -->
+            <div class="form-group">
+                <label for="current-mileage-input" class="form-label">
+                    📊 Поточний пробіг (км)
+                </label>
+                <input 
+                    type="number" 
+                    id="current-mileage-input" 
+                    name="current_mileage"
+                    class="form-control"
+                    min="0"
+                    value="0"
+                    required>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="add-car-error" class="alert alert-error hidden"></div>
+            
+            <!-- Form Actions -->
+            <div class="modal-footer">
+                <button 
+                    type="button" 
+                    class="btn btn-secondary"
+                    onclick="closeModal('add-car-modal')">
+                    Скасувати
+                </button>
+                <button 
+                    type="submit" 
+                    class="btn btn-primary">
+                    Додати автомобіль
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

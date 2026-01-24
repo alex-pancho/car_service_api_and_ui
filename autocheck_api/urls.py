@@ -13,7 +13,8 @@ urlpatterns = [
 
     path("api/auth/", include("users.urls_auth")),
     path("api/users/", include("users.urls")),
-    path("api/cars/", include("cars.urls")),
+    #path("api/cars/", include("cars.urls")),
+    path("api/", include("cars.urls")),
 
     # OpenAPI 3 (Swagger)
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

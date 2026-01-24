@@ -1,51 +1,130 @@
+// =======================
+// CONFIG
+// =======================
 const API = {
+    login: '/api/auth/signin/',
+    refresh: '/api/auth/refresh/',
     cars: '/api/cars/',
     brands: '/api/brands/',
     models: '/api/models/',
     services: '/api/services/',
 };
-let token = null;
+
+let token = localStorage.getItem('access');
 let selectedCarId = null;
 
-// Auth functions
+
+// =======================
+// AUTH
+// =======================
 async function login() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    
-    try {
-        const response = await fetch(`${window.location.origin}/api/auth/signin/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            token = data.access;
-            document.getElementById('userInfo').textContent = `👤 ${username}`;
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('appSection').classList.remove('hidden');
-            loadBrands();
-            loadCars();
-        } else {
-            document.getElementById('loginError').textContent = 'Невірний логін або пароль';
-            document.getElementById('loginError').classList.remove('hidden');
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        document.getElementById('loginError').textContent = 'Помилка з\'єднання';
-        document.getElementById('loginError').classList.remove('hidden');
+    const response = await fetch(API.login, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+
+    if (!response.ok) {
+        alert('Невірний логін або пароль');
+        return;
     }
+    const data = await response.json();
+    token = data.access;
+    localStorage.setItem('access', data.access);
+    localStorage.setItem('refresh', data.refresh);
+
+    document.getElementById('userInfo').textContent = `👤 ${username}`;
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('appSection').classList.remove('hidden');
+    loadBrands();
+    loadCars();
+}
+
+async function refreshToken() {
+    const refresh = localStorage.getItem('refresh');
+    if (!refresh) return false;
+
+    const response = await fetch(API.refresh, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh })
+    });
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+    localStorage.setItem('access', data.access);
+    token = data.access;
+    return true;
 }
 
 function logout() {
+    localStorage.clear();
     token = null;
     selectedCarId = null;
+    showLogin();
+}
+
+
+// =======================
+// API WRAPPER (AUTO REFRESH)
+// =======================
+async function apiCall(url, method = 'GET', body = null, retry = true) {
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+        }
+    };
+
+    if (body) options.body = JSON.stringify(body);
+
+    let response = await fetch(url, options);
+
+    if (response.status === 401 && retry) {
+        const ok = await refreshToken();
+        if (ok) return apiCall(url, method, body, false);
+        logout();
+        throw new Error('Session expired');
+    }
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+    }
+
+    return response.json();
+}
+
+// =======================
+// UI STATE
+// =======================
+function showLogin() {
     document.getElementById('loginSection').classList.remove('hidden');
     document.getElementById('appSection').classList.add('hidden');
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
 }
+
+function showApp() {
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('appSection').classList.remove('hidden');
+}
+
+
+// =======================
+// BOOTSTRAP
+// =======================
+document.addEventListener('DOMContentLoaded', () => {
+    if (token) {
+        showApp();
+        loadCars();
+    } else {
+        showLogin();
+    }
+});
+
 
 // API calls
 async function apiCall(endpoint, method = 'GET', body = null) {

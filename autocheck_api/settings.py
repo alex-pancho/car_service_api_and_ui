@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "rest_framework",
+    "rest_framework.authtoken",
     "drf_spectacular",
 
     "users",
@@ -80,7 +81,10 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Europe/Kyiv"
 USE_I18N = True
 USE_TZ = True
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -125,10 +129,11 @@ SWAGGER_SETTINGS = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "QA_auto",
     "DESCRIPTION": "API for QA_auto sample project",
-    "VERSION": "v1",
+    "VERSION": "1.0.1",
     "CONTACT": {
         "email": "support@test.ua",
     },
     "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
     "SERVE_AUTHENTICATION": [],
+    "SERVE_INCLUDE_SCHEMA": False,
 }

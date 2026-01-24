@@ -10,6 +10,10 @@ python manage.py createsuperuser
 ```
 Запуск:
 ```
+python -m uvicorn autocheck_api.asgi:application --reload
+```
+або вариант з Django:
+```
 python manage.py runserver
 ```
 # Доступні URL
@@ -30,6 +34,6 @@ Users current: GET /api/users/current/ (Authorization: Bearer <access_token>)
 
 Cars endpoints: GET/POST /api/cars/, GET/PUT/DELETE /api/cars/{id}/
 
-Brands: /api/cars/brands/
+Brands: /api/brands/
 
-Models: /api/cars/models/
+Models: /api/models/

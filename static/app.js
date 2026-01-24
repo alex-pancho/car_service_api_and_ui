@@ -69,12 +69,15 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 // Load data
 async function loadBrands() {
     try {
-        const response = await apiCall(brands);
+        const response = await apiCall(API.brands);
         const select = document.getElementById('carBrand');
         select.innerHTML = '<option value="">Оберіть бренд</option>';
         
         response.results.forEach(brand => {
-            select.innerHTML += `<option value="${brand.id}">${brand.title}</option>`;
+            const option = document.createElement('option');
+            option.value = brand.id;
+            option.textContent = brand.title;
+            select.appendChild(option);
         });
     } catch (error) {
         console.error('Error loading brands:', error);
@@ -91,7 +94,7 @@ async function loadModels() {
     }
     
     try {
-        const response = await apiCall(`${models}?brand=${brandId}`);
+        const response = await apiCall(`${API.models}?brand=${brandId}`);
         
         const options = ['<option value="">Оберіть модель</option>'];
         response.results.forEach(model => {
@@ -105,7 +108,7 @@ async function loadModels() {
 
 async function loadCars() {
     try {
-        const response = await apiCall(cars);
+        const response = await apiCall(API.cars);
         const container = document.getElementById('carsList');
         
         if (response.results.length === 0) {
@@ -141,13 +144,13 @@ async function loadCars() {
 
 async function loadServices(carId) {
     try {
-        const response = await apiCall(`${services}?car=${carId}`);
+        const response = await apiCall(`${API.services}?car=${carId}`);
         const services = response.results || response;
         const container = document.getElementById('servicesList');
         container.innerHTML = '';
         
         // Знайти інформацію про обране авто
-        const carsResponse = await apiCall(cars);
+        const carsResponse = await apiCall(API.cars);
         const selectedCar = carsResponse.results.find(car => car.id === carId);
         if (selectedCar) {
             document.getElementById('selectedCarInfo').textContent = `${selectedCar.brand} ${selectedCar.model} (${selectedCar.mileage} км)`;
@@ -228,7 +231,7 @@ async function deleteCar(carId, event) {
     if (!confirm('Видалити автомобіль?')) return;
     
     try {
-        await apiCall(`${cars}${carId}/`, 'DELETE');
+        await apiCall(`${API.cars}${carId}/`, 'DELETE');
         if (selectedCarId === carId) {
             selectedCarId = null;
             document.getElementById('servicesSection').classList.add('hidden');
@@ -259,7 +262,7 @@ async function addService() {
 
 async function updateServiceStatus(serviceId, newStatus) {
     try {
-        await apiCall(`${services}${serviceId}/`, 'PATCH', { status: newStatus });
+        await apiCall(`${API.services}${serviceId}/`, 'PATCH', { status: newStatus });
         loadServices(selectedCarId);
     } catch (error) {
         console.error('Error updating service status:', error);
@@ -270,7 +273,7 @@ async function deleteService(serviceId) {
     if (!confirm('Видалити роботу?')) return;
     
     try {
-        await apiCall(`${services}${serviceId}/`, 'DELETE');
+        await apiCall(`${API.services}${serviceId}/`, 'DELETE');
         loadServices(selectedCarId);
     } catch (error) {
         console.error('Error deleting service:', error);

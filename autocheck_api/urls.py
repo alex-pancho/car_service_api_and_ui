@@ -10,10 +10,8 @@ from drf_spectacular.views import (
 urlpatterns = [
     path("", include("frontend.urls")),
     path("admin/", admin.site.urls),
-
     path("api/auth/", include("users.urls_auth")),
     path("api/users/", include("users.urls")),
-    #path("api/cars/", include("cars.urls")),
     path("api/", include("cars.urls")),
 
     # OpenAPI 3 (Swagger)

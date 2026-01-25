@@ -16,9 +16,7 @@ class Brand(models.Model):
 
 class CarModel(models.Model):
     car_brand = models.ForeignKey(
-        Brand,
-        on_delete=models.CASCADE,
-        related_name="models"
+        Brand, on_delete=models.CASCADE, related_name="models"
     )
     title = models.CharField(max_length=100)
 
@@ -33,9 +31,7 @@ class CarModel(models.Model):
 
 class Car(models.Model):
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="cars"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cars"
     )
     car_brand = models.ForeignKey(Brand, on_delete=models.PROTECT)
     car_model = models.ForeignKey(CarModel, on_delete=models.PROTECT)
@@ -58,18 +54,12 @@ class Service(models.Model):
         IN_PROGRESS = "in_progress", "В роботі"
         COMPLETED = "completed", "Виконано"
 
-    car = models.ForeignKey(
-        Car,
-        on_delete=models.CASCADE,
-        related_name="services"
-    )
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name="services")
     work_description = models.CharField(max_length=255)
     hours = models.DecimalField(max_digits=4, decimal_places=1)
     scheduled_date = models.DateField()
     status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING
+        max_length=20, choices=Status.choices, default=Status.PENDING
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

@@ -4,6 +4,4 @@ from django.contrib.staticfiles.handlers import ASGIStaticFilesHandler
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "autocheck_api.settings")
 
-application = ASGIStaticFilesHandler(
-    get_asgi_application()
-)
+application = ASGIStaticFilesHandler(get_asgi_application())

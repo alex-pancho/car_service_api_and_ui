@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from .models import Brand, CarModel, Car, Service
 
+
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
         fields = ("id", "title", "logo_filename")
+
 
 class CarModelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,6 +25,7 @@ class CarWriteSerializer(serializers.ModelSerializer):
             "mileage",
         )
 
+
 class CarReadSerializer(serializers.ModelSerializer):
     brand = serializers.CharField(source="car_brand.title", read_only=True)
     model = serializers.CharField(source="car_model.title", read_only=True)
@@ -40,6 +43,7 @@ class CarReadSerializer(serializers.ModelSerializer):
             "updated_mileage_at",
         )
 
+
 class ServiceWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
@@ -51,6 +55,7 @@ class ServiceWriteSerializer(serializers.ModelSerializer):
             "scheduled_date",
             "status",
         )
+
 
 class ServiceReadSerializer(serializers.ModelSerializer):
     car_info = serializers.SerializerMethodField()

@@ -1,12 +1,18 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DJANGO_ENV = os.getenv("DJANGO_ENV", "local")
+DATABASE_URL = os.getenv("DATABASE_URL", "local")
 
 SECRET_KEY = "change-me-to-a-secure-secret-in-prod"
-DEBUG = True
+if os.name == "nt":
+    DEBUG = True
+else:
+    DEBUG = False
+
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
@@ -28,13 +34,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'autocheck_api.middleware.SwaggerJWTMiddleware',  # Додайте тут
+    'autocheck_api.middleware.SwaggerJWTMiddleware',
 ]
 
 ROOT_URLCONF = "autocheck_api.urls"
@@ -57,10 +64,10 @@ WSGI_APPLICATION = "autocheck_api.wsgi.application"
 
 if DJANGO_ENV == "production":
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "/var/data/db.sqlite3",  # Render disk
-        }
+       'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600
+        )
     }
 else:
     DATABASES = {
@@ -85,6 +92,13 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+if not DEBUG:
+    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+    # and renames the files with unique names for each version to support long-term caching
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

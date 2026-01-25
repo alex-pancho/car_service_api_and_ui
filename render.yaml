@@ -13,7 +13,9 @@ services:
     startCommand: 'python -m gunicorn autocheck_api.asgi:application -k uvicorn.workers.UvicornWorker'
     envVars:
       - key: DATABASE_URL
-        value: sqlite:////var/data/db.sqlite3
+        fromDatabase:
+          name: mysitedb
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: WEB_CONCURRENCY

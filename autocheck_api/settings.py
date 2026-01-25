@@ -2,6 +2,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 import dj_database_url
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DJANGO_ENV = os.getenv("DJANGO_ENV", "local")
@@ -62,20 +64,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "autocheck_api.wsgi.application"
 
-if DJANGO_ENV == "production":
-    DATABASES = {
-       'default': dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600
-        )
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",  # local
-        }
-    }
+
+DATABASES = {
+    'default': dj_database_url.config(
+    default=DATABASE_URL,
+    conn_max_age=600
+    )
+}
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

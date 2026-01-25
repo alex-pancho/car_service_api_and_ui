@@ -3,7 +3,7 @@
 // =======================
 const API = {
     login: '/api/auth/signin/',
-    refresh: '/api/auth/refresh/',
+    refresh: '/api/auth/token/refresh/',
     cars: '/api/cars/',
     brands: '/api/brands/',
     models: '/api/models/',

@@ -1,4 +1,11 @@
 Подивитися наживо: https://car-service-api-and-ui.onrender.com/
+
+Клонуввати репозиторій:
+```
+
+git clone https://github.com/alex-pancho/car_service_api_and_ui.git
+cd car_service_api_and_ui
+```
 # Початкове розгортання
 Виконай:
 ```

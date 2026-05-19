@@ -8,19 +8,19 @@ User = get_user_model()
 
 @pytest.fixture
 def api_client():
-    """Фікстура створює клієнт для тестування API"""
+    
     return APIClient()
 
 @pytest.fixture
 def authenticated_client(api_client):
-    """Фікстура створює та авторизує користувача"""
+   
     user = User.objects.create_user(username="testuser", password="password123")
     api_client.force_authenticate(user=user)
     return api_client
 
 @pytest.fixture
 def test_brand_and_model(db):
-    """Фікстура динамічно знаходить моделі Django та створює тестові бренд і модель автомобіля"""
+   
     BrandModel = apps.get_model('cars', 'Brand')
     CarModelClass = apps.get_model('cars', 'CarModel')
 
@@ -31,7 +31,7 @@ def test_brand_and_model(db):
 
 @pytest.fixture
 def sample_car_id(authenticated_client, test_brand_and_model):
-    """Фікстура створює одну машину для тестів читання/оновлення/видалення"""
+   
     brand, model = test_brand_and_model
     car_data = {
         "car_brand": brand.id,
@@ -48,23 +48,21 @@ def sample_car_id(authenticated_client, test_brand_and_model):
 @pytest.mark.django_db
 class TestCarServiceAPI:
 
-    # ------------------ ТЕСТИ АВТОРИЗАЦІЇ (AUTH) ------------------
-
+   
     def test_01_cars_endpoint_requires_authentication(self, api_client):
-        """Тест 1: Неавторизований запит має повертати 401 Unauthorized"""
+       
         response = api_client.get("/api/cars/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_02_cars_endpoint_allowed_for_authenticated_user(self, authenticated_client):
-        """Тест 2: Авторизований користувач отримує доступ (200 OK)"""
+    
         response = authenticated_client.get("/api/cars/")
         assert response.status_code == status.HTTP_200_OK
 
 
-    # ------------------ ТЕСТИ СТВОРЕННЯ (POST) ------------------
-
+   
     def test_03_create_car_success(self, authenticated_client, test_brand_and_model):
-        """Тест 3: Успішне створення запису про автомобіль"""
+        
         brand, model = test_brand_and_model
         car_data = {
             "car_brand": brand.id,
@@ -78,7 +76,7 @@ class TestCarServiceAPI:
         assert response.data["car_model"] == model.id
 
     def test_04_create_car_invalid_data(self, authenticated_client, test_brand_and_model):
-        """Тест 4: Валідація даних (відсутнє обов'язкове поле car_model)"""
+      
         brand, _ = test_brand_and_model
         invalid_data = {
             "car_brand": brand.id,
@@ -89,16 +87,16 @@ class TestCarServiceAPI:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-    # ------------------ ТЕСТИ ЧИТАННЯ (GET) ------------------
+   
 
     def test_05_get_all_cars_list(self, authenticated_client):
-        """Тест 5: Отримання списку всіх автомобілів"""
+        
         response = authenticated_client.get("/api/cars/")
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list) or "results" in response.data
 
     def test_06_get_single_car_by_id(self, authenticated_client, sample_car_id):
-        """Тест 6: Отримання конкретного авто за ID"""
+      
         if not sample_car_id:
             pytest.skip("Не вдалося створити тестовий автомобіль")
             
@@ -107,10 +105,10 @@ class TestCarServiceAPI:
         assert response.data["id"] == sample_car_id
 
 
-    # ------------------ ТЕСТИ ОНОВЛЕННЯ (PATCH) ------------------
+    
 
     def test_07_update_car_patch(self, authenticated_client, sample_car_id, test_brand_and_model):
-        """Тест 7: Часткове оновлення даних (PATCH)"""
+        
         if not sample_car_id:
             pytest.skip("Не вдалося створити тестовий автомобіль")
             
@@ -121,10 +119,10 @@ class TestCarServiceAPI:
         assert response.data["car_model"] == model.id
 
 
-    # ------------------ ТЕСТИ ВИДАЛЕННЯ (DELETE) ------------------
+
 
     def test_08_delete_car_success(self, authenticated_client, sample_car_id):
-        """Тест 8: Успішне видалення автомобіля за ID"""
+      
         if not sample_car_id:
             pytest.skip("Не вдалося створити тестовий автомобіль")
             

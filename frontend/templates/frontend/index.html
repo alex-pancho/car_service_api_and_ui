@@ -38,8 +38,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                     <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
-                <button onclick="login()" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
-                    Увійти
+                <button onclick="window.authManager.login()" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                    Login
                 </button>
                 <div id="loginError" class="text-red-600 text-sm text-center hidden"></div>
             </div>
@@ -63,7 +63,7 @@
                     </div>
                     <div class="flex items-center gap-4">
                         <span id="userInfo" class="text-gray-700 font-medium"></span>
-                        <button onclick="logout()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                        <button onclick="window.authManager.logout()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                             Вийти
                         </button>
                     </div>
@@ -74,7 +74,7 @@
             <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-gray-900">Мої автомобілі</h2>
-                    <button onclick="showAddCarModal()" class="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg">
+                    <button onclick="window.carManager.showAddCarModal()" class="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg">
                         ➕ Додати авто
                     </button>
                 </div>
@@ -90,7 +90,7 @@
                         <h2 class="text-2xl font-bold text-gray-900">Обслуговування</h2>
                         <p id="selectedCarInfo" class="text-gray-600 mt-1"></p>
                     </div>
-                    <button onclick="showAddServiceModal()" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors shadow-lg">
+                    <button onclick="window.serviceManager.showAddServiceModal()" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors shadow-lg">
                         🔧 Додати роботу
                     </button>
                 </div>
@@ -128,10 +128,10 @@
                 </div>
             </div>
             <div class="flex gap-3 mt-6">
-                <button onclick="addCar()" class="flex-1 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                <button onclick="window.carManager.addCar()" class="flex-1 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
                     Додати
                 </button>
-                <button onclick="closeModal('addCarModal')" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium">
+                <button onclick="window.carManager.closeModal('addCarModal')" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium">
                     Скасувати
                 </button>
             </div>
@@ -157,17 +157,17 @@
                 </div>
             </div>
             <div class="flex gap-3 mt-6">
-                <button onclick="addService()" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                <button onclick="window.serviceManager.addService()" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-medium">
                     Додати
                 </button>
-                <button onclick="closeModal('addServiceModal')" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium">
+                <button onclick="window.serviceManager.closeModal('addServiceModal')" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium">
                     Скасувати
                 </button>
             </div>
         </div>
     </div>
 
-    <script src="{% static 'app.js' %}">
+    <script type="module"  src="{% static 'main.js' %}">
     </script>
 </body>
 </html>

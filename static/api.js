@@ -2,7 +2,23 @@
 // API MODULE
 // =======================
 
-import { getToken, refreshToken, logout } from './auth.js';
+import { getToken, setToken, refreshToken, logout } from './auth.js';
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    
+    isRefreshing = false;
+    failedQueue = [];
+};
 
 /**
  * Universal API call wrapper with automatic token refresh on 401
@@ -31,18 +47,49 @@ export async function apiCall(url, method = 'GET', body = null, retry = true) {
 
         // Auto-refresh on 401
         if (response.status === 401 && retry) {
-            console.log('Token expired, attempting refresh...');
-            const ok = await refreshToken();
-            if (ok) {
-                console.log('Token refreshed, retrying request...');
-                return apiCall(url, method, body, false);
+            console.log('Token expired (401), attempting refresh...');
+            
+            if (isRefreshing) {
+                // Якщо рефреш вже в процесі, чекаємо результату
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then(token => {
+                        options.headers.Authorization = `Bearer ${token}`;
+                        return fetch(url, options).then(res => res.json());
+                    });
             }
-            logout();
-            throw new Error('Session expired');
+
+            isRefreshing = true;
+
+            try {
+                const refreshed = await refreshToken();
+                console.log('Token refresh result:', refreshed);
+                
+                if (refreshed) {
+                    const newToken = getToken();
+                    console.log('Token refreshed successfully, retrying request...');
+                    processQueue(null, newToken);
+                    
+                    // Повтори запит з новим токеном
+                    return apiCall(url, method, body, false);
+                } else {
+                    console.log('Token refresh failed, logging out');
+                    processQueue(new Error('Token refresh failed'), null);
+                    logout();
+                    throw new Error('Session expired - please login again');
+                }
+            } catch (error) {
+                console.error('Token refresh error:', error);
+                processQueue(error, null);
+                logout();
+                throw new Error('Authentication failed');
+            }
         }
 
         if (!response.ok) {
             const text = await response.text();
+            console.error(`API Error: ${response.status} - ${text}`);
             throw new Error(`API Error: ${response.status} - ${text}`);
         }
 

@@ -76,7 +76,7 @@ class IsOwnerPermission(BasePermission):
 class BrandViewSet(ModelViewSet):
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer
-    permission_classes = [ReadOnlyOrAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 # =========================
@@ -108,7 +108,7 @@ class BrandViewSet(ModelViewSet):
 )
 class CarModelViewSet(ModelViewSet):
     serializer_class = CarModelSerializer
-    permission_classes = [ReadOnlyOrAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         qs = CarModel.objects.select_related("car_brand")

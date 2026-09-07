@@ -14,7 +14,7 @@ source .venv/bin/activate     # або .venv\Scripts\activate на Windows
 pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
-python manage.py createsuperuser
+python manage.py populate_db
 ```
 Запуск:
 ```

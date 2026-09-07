@@ -11,7 +11,7 @@ class Brand(models.Model):
         verbose_name_plural = "Brands"
 
     def __str__(self):
-        return self.title
+        return str(self.title)
 
 
 class CarModel(models.Model):

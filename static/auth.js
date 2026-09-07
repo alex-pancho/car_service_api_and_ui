@@ -21,8 +21,7 @@ export function setToken(newToken) {
 }
 
 export function getUserInfo() {
-    // Спробуй отримати інформацію про користувача з localStorage
-    // або з JWT токену
+    // Спробуй отримати інформацію про користувача з JWT токену
     try {
         const tokenData = token ? JSON.parse(atob(token.split('.')[1])) : null;
         return tokenData ? { username: tokenData.username || 'User' } : null;
@@ -49,10 +48,10 @@ export async function login(username, password) {
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access);
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh);
         
-        console.log('Login successful');
+        console.log('[Auth] Login successful');
         return { username, token: data.access };
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('[Auth] Login error:', error);
         throw error;
     }
 }
@@ -61,12 +60,12 @@ export async function refreshToken() {
     const refresh = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
     
     if (!refresh) {
-        console.log('No refresh token available');
+        console.log('[Auth] ❌ No refresh token available');
         return false;
     }
 
     try {
-        console.log('Attempting to refresh token...');
+        console.log('[Auth] 🔄 Attempting to refresh token...');
         const response = await fetch(API.refresh, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -74,9 +73,15 @@ export async function refreshToken() {
         });
 
         if (!response.ok) {
-            console.error('Refresh failed with status:', response.status);
+            console.error('[Auth] ❌ Refresh failed with status:', response.status);
             const error = await response.json();
-            console.error('Refresh error:', error);
+            console.error('[Auth] ❌ Refresh error:', error);
+            
+            // Якщо refresh токен невалідний - повна logout
+            if (response.status === 401 || response.status === 400) {
+                console.log('[Auth] Refresh token invalid, clearing session');
+                forceLogout();
+            }
             return false;
         }
 
@@ -89,16 +94,27 @@ export async function refreshToken() {
             localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh);
         }
         
-        console.log('Token refreshed successfully');
+        console.log('[Auth] ✅ Token refreshed successfully');
+        console.log('[Auth] New token preview:', token.substring(0, 30) + '...');
         return true;
     } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error('[Auth] ❌ Token refresh failed:', error);
         return false;
     }
 }
 
+/**
+ * Logout with session clearing and reload
+ */
 export function logout() {
-    console.log('Logging out...');
+    console.log('[Auth] Logging out...');
+    forceLogout();
+}
+
+/**
+ * Force logout without showing UI (internal use)
+ */
+export function forceLogout() {
     localStorage.clear();
     token = null;
     const ui = getUIManager();

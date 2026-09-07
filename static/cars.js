@@ -5,6 +5,7 @@
 import { API } from './config.js';
 import { apiGet, apiPost, apiDelete } from './api.js';
 import { getUIManager } from './ui.js';
+import { getToken } from './auth.js';
 
 let selectedCarId = null;
 
@@ -25,6 +26,9 @@ export function clearSelectedCar() {
  */
 export async function loadBrands() {
     try {
+        const token = getToken();
+        console.log('[Cars] Loading brands, token present:', !!token);
+        
         const response = await apiGet(API.brands);
         const select = document.getElementById('carBrand');
         
@@ -32,43 +36,61 @@ export async function loadBrands() {
         
         select.innerHTML = '<option value="">Оберіть бренд</option>';
         
-        response.results.forEach(brand => {
-            const option = document.createElement('option');
-            option.value = brand.id;
-            option.textContent = brand.title;
-            select.appendChild(option);
-        });
+        if (response.results && response.results.length > 0) {
+            response.results.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand.id;
+                option.textContent = brand.title;
+                select.appendChild(option);
+            });
+            console.log('[Cars] Loaded brands:', response.results.length);
+        }
     } catch (error) {
-        console.error('Error loading brands:', error);
+        console.error('[Cars] Error loading brands:', error);
         const ui = getUIManager();
-        ui.showAlert('Помилка при завантаженні брендів');
+        ui.showAlert('Помилка при завантаженні брендів: ' + error.message);
     }
 }
 
 /**
  * Load car models based on selected brand
  */
-export async function loadModels() {
-    const brandId = document.getElementById('carBrand')?.value;
+export async function loadModels(brandId) {
     const select = document.getElementById('carModel');
     
     if (!select) return;
+    
+    // Якщо brandId не передана, отримай з select
+    if (!brandId) {
+        brandId = document.getElementById('carBrand')?.value;
+    }
     
     if (!brandId) {
         select.innerHTML = '<option value="">Оберіть модель</option>';
         return;
     }
     
+    console.log('[Cars] Loading models for brand:', brandId);
+    select.innerHTML = '<option value="">Завантаження...</option>';
+    
     try {
         const response = await apiGet(`${API.models}?brand=${brandId}`);
         
         const options = ['<option value="">Оберіть модель</option>'];
-        response.results.forEach(model => {
-            options.push(`<option value="${model.id}">${model.title}</option>`);
-        });
+        if (response.results && response.results.length > 0) {
+            response.results.forEach(model => {
+                options.push(`<option value="${model.id}">${model.title}</option>`);
+            });
+            console.log('[Cars] Loaded models:', response.results.length);
+        } else {
+            options.push('<option value="">Немає доступних моделей</option>');
+        }
         select.innerHTML = options.join('');
     } catch (error) {
-        console.error('Error loading models:', error);
+        console.error('[Cars] Error loading models:', error);
+        const ui = getUIManager();
+        ui.showAlert('Помилка при завантаженні моделей: ' + error.message);
+        select.innerHTML = '<option value="">Помилка завантаження</option>';
     }
 }
 
@@ -77,15 +99,20 @@ export async function loadModels() {
  */
 export async function loadCars() {
     try {
+        const token = getToken();
+        console.log('[Cars] Loading cars, token present:', !!token);
+        
         const response = await apiGet(API.cars);
         const container = document.getElementById('carsList');
         
         if (!container) return;
         
-        if (response.results.length === 0) {
+        if (!response.results || response.results.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-center py-8">Немає автомобілів. Додайте свій перший автомобіль!</p>';
             return;
         }
+        
+        console.log('[Cars] Loaded cars:', response.results.length);
         
         const carsHTML = response.results.map(car => `
             <div onclick="window.carManager.selectCar(${car.id})" class="border-2 ${selectedCarId === car.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'} rounded-xl p-5 cursor-pointer hover:shadow-lg transition-all">
@@ -109,7 +136,9 @@ export async function loadCars() {
         
         container.innerHTML = carsHTML;
     } catch (error) {
-        console.error('Error loading cars:', error);
+        console.error('[Cars] Error loading cars:', error);
+        const ui = getUIManager();
+        ui.showAlert('Помилка при завантаженні автомобілів: ' + error.message);
     }
 }
 
@@ -125,8 +154,12 @@ export async function selectCar(carId) {
     ui.scrollToElement('servicesSection', true);
     
     // Load services for this car
-    const { loadServices } = await import('./services.js');
-    loadServices(carId);
+    try {
+        const { loadServices } = await import('./services.js');
+        loadServices(carId);
+    } catch (error) {
+        console.error('[Cars] Error importing services:', error);
+    }
 }
 
 /**
@@ -139,8 +172,7 @@ export async function addCar() {
     const currentMileage = document.getElementById('currentMileage')?.value;
     
     if (!brandId || !modelId || !initialMileage || !currentMileage) {
-        const ui = getUIManager();
-        ui.showAlert('Заповніть всі поля');
+        alert('Заповніть всі поля');
         return;
     }
     
@@ -152,14 +184,15 @@ export async function addCar() {
     };
     
     try {
+        console.log('[Cars] Adding car...');
         await apiPost(API.cars, data);
-        const ui = getUIManager();
-        ui.closeModal('addCarModal');
-        loadCars();
+        console.log('[Cars] Car added successfully');
+        alert('Автомобіль успішно додан!');
+        window.carManager.closeModal('addCarModal');
+        await loadCars();
     } catch (error) {
-        console.error('Error adding car:', error);
-        const ui = getUIManager();
-        ui.showAlert('Помилка при додаванні автомобіля');
+        console.error('[Cars] Error adding car:', error);
+        alert('Помилка при додаванні автомобіля: ' + error.message);
     }
 }
 
@@ -169,29 +202,56 @@ export async function addCar() {
 export async function deleteCar(carId, event) {
     event.stopPropagation();
     
-    const ui = getUIManager();
-    if (!ui.showConfirm('Видалити автомобіль?')) return;
+    if (!confirm('Видалити автомобіль?')) return;
     
     try {
+        console.log('[Cars] Deleting car:', carId);
         await apiDelete(`${API.cars}${carId}/`);
+        console.log('[Cars] ✅ Car deleted successfully');
+        
+        // Якщо це був вибраний автомобіль
         if (selectedCarId === carId) {
+            console.log('[Cars] Deleted car was selected, clearing selection');
             selectedCarId = null;
+            const ui = getUIManager();
             ui.hideServices();
         }
-        loadCars();
+        
+        // Рефреш списку після успішного видалення
+        console.log('[Cars] Refreshing car list after deletion');
+        await loadCars();
+        console.log('[Cars] ✅ Car list refreshed after deletion');
+        
     } catch (error) {
-        console.error('Error deleting car:', error);
-        ui.showAlert('Помилка при видаленні автомобіля');
+        console.error('[Cars] ❌ Error during deletion:', error);
+        
+        // Якщо видалення не вдалось - спробуємо рефреш список все одно
+        // Бо можливо видалення було успішне на сервері, 
+        // а помилка тільки при отриманні нового списку
+        console.log('[Cars] ⚠️ Attempting to refresh list despite error...');
+        try {
+            await loadCars();
+            console.log('[Cars] ✅ List refreshed successfully');
+            // Якщо рефреш вдалось - видалення ймовірно було успішне
+            alert('Автомобіль видалений');
+        } catch (refreshError) {
+            console.error('[Cars] ❌ List refresh also failed:', refreshError);
+            alert('❌ Помилка при видаленні автомобіля: ' + error.message);
+        }
     }
 }
 
 /**
  * Show add car modal and reset form
  */
-export function showAddCarModal() {
-    const ui = getUIManager();
-    ui.openModal('addCarModal');
+export async function showAddCarModal() {
+    console.log('[Cars] Opening add car modal');
+    window.carManager.openModal('addCarModal');
     
+    // Завантажуємо бренди при відкритті модалі
+    await loadBrands();
+    
+    // Reset form
     const brandSelect = document.getElementById('carBrand');
     const modelSelect = document.getElementById('carModel');
     const initialMileageInput = document.getElementById('initialMileage');

@@ -31,7 +31,13 @@ window.authManager = {
 
 window.carManager = {
     loadBrands,
-    loadModels,
+    loadModels: (brandIdOrEvent) => {
+        // Обробка як Event так і простого значення
+        const brandId = (brandIdOrEvent && brandIdOrEvent.target) 
+            ? brandIdOrEvent.target.value 
+            : brandIdOrEvent;
+        loadModels(brandId);
+    },
     loadCars,
     showAddCarModal,
     addCar,
@@ -80,10 +86,13 @@ function setupEventListeners() {
         });
     }
     
-    // Brand select change
+    // Brand select change - правильна обробка
     const brandSelect = document.getElementById('carBrand');
     if (brandSelect) {
-        brandSelect.addEventListener('change', loadModels);
+        brandSelect.addEventListener('change', (e) => {
+            console.log('[Main] Brand changed to:', e.target.value);
+            loadModels(e.target.value);
+        });
     }
     
     // Close modal on background click

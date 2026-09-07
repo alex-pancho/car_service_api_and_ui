@@ -1,8 +1,8 @@
 // =======================
-// API MODULE
+// API MODULE with Token Refresh
 // =======================
 
-import { getToken, setToken, refreshToken, logout } from './auth.js';
+import { getToken, setToken, refreshToken, forceLogout } from './auth.js';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -22,14 +22,13 @@ const processQueue = (error, token = null) => {
 
 /**
  * Universal API call wrapper with automatic token refresh on 401
- * @param {string} url - API endpoint
- * @param {string} method - HTTP method (GET, POST, PATCH, DELETE)
- * @param {object} body - Request body
- * @param {boolean} retry - Whether to retry on 401
- * @returns {Promise<object>} Parsed JSON response
  */
 export async function apiCall(url, method = 'GET', body = null, retry = true) {
     const token = getToken();
+    
+    console.log(`[API] ${method} ${url}`);
+    console.log(`[API] Token present: ${!!token}`);
+    
     const options = {
         method,
         headers: {
@@ -44,58 +43,79 @@ export async function apiCall(url, method = 'GET', body = null, retry = true) {
 
     try {
         let response = await fetch(url, options);
+        
+        console.log(`[API] Response status: ${response.status}`);
 
-        // Auto-refresh on 401
+        // Check for 401 Unauthorized
         if (response.status === 401 && retry) {
-            console.log('Token expired (401), attempting refresh...');
+            console.warn('[API] ⚠️ Received 401 Unauthorized - attempting token refresh');
             
             if (isRefreshing) {
-                // Якщо рефреш вже в процесі, чекаємо результату
+                console.log('[API] Token refresh already in progress, queuing request...');
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
                     .then(token => {
-                        options.headers.Authorization = `Bearer ${token}`;
-                        return fetch(url, options).then(res => res.json());
+                        console.log('[API] Retrying queued request with new token');
+                        const newOptions = { ...options };
+                        newOptions.headers.Authorization = `Bearer ${token}`;
+                        return fetch(url, newOptions).then(res => {
+                            if (!res.ok) throw new Error(`API Error: ${res.status}`);
+                            return res.json();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('[API] Queued request failed:', error);
+                        throw error;
                     });
             }
 
             isRefreshing = true;
 
             try {
+                console.log('[API] Starting token refresh...');
                 const refreshed = await refreshToken();
-                console.log('Token refresh result:', refreshed);
+                console.log(`[API] Token refresh result: ${refreshed}`);
                 
                 if (refreshed) {
                     const newToken = getToken();
-                    console.log('Token refreshed successfully, retrying request...');
+                    console.log('[API] ✅ Token refreshed successfully');
                     processQueue(null, newToken);
                     
-                    // Повтори запит з новим токеном
+                    // Retry the original request with new token
+                    console.log('[API] Retrying original request with new token');
                     return apiCall(url, method, body, false);
                 } else {
-                    console.log('Token refresh failed, logging out');
+                    console.error('[API] ❌ Token refresh failed');
                     processQueue(new Error('Token refresh failed'), null);
-                    logout();
+                    
+                    // Refresh token невалідний - потрібен перелогін
+                    console.log('[API] Refresh token invalid, forcing logout');
+                    forceLogout();
                     throw new Error('Session expired - please login again');
                 }
             } catch (error) {
-                console.error('Token refresh error:', error);
+                console.error('[API] ❌ Token refresh error:', error);
                 processQueue(error, null);
-                logout();
-                throw new Error('Authentication failed');
+                forceLogout();
+                throw error;
             }
         }
 
+        // Check for other errors
         if (!response.ok) {
             const text = await response.text();
-            console.error(`API Error: ${response.status} - ${text}`);
+            console.error(`[API] ❌ API Error: ${response.status}`);
+            console.error(`[API] Response body:`, text);
             throw new Error(`API Error: ${response.status} - ${text}`);
         }
 
-        return response.json();
+        const data = await response.json();
+        console.log('[API] ✅ Success');
+        return data;
+        
     } catch (error) {
-        console.error(`API call failed: ${url}`, error);
+        console.error(`[API] ❌ Request failed: ${url}`, error);
         throw error;
     }
 }

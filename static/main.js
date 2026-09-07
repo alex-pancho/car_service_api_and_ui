@@ -7,6 +7,22 @@ import { loadBrands, loadModels, loadCars, showAddCarModal, addCar, deleteCar, s
 import { loadServices, addService, updateServiceStatus, deleteService, showAddServiceModal } from './services.js';
 import { getUIManager } from './ui.js';
 
+// Modal management
+const modalManager = {
+    open: (modalId) => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+        }
+    },
+    close: (modalId) => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+};
+
 // Expose managers to global scope for HTML onclick handlers
 window.authManager = {
     login: handleLogin,
@@ -15,12 +31,20 @@ window.authManager = {
 
 window.carManager = {
     loadBrands,
-    loadModels,
+    loadModels: (brandIdOrEvent) => {
+        // Обробка як Event так і простого значення
+        const brandId = (brandIdOrEvent && brandIdOrEvent.target) 
+            ? brandIdOrEvent.target.value 
+            : brandIdOrEvent;
+        loadModels(brandId);
+    },
     loadCars,
     showAddCarModal,
     addCar,
     deleteCar,
     selectCar,
+    closeModal: modalManager.close,
+    openModal: modalManager.open,
 };
 
 window.serviceManager = {
@@ -29,6 +53,8 @@ window.serviceManager = {
     updateServiceStatus,
     deleteService,
     showAddServiceModal,
+    closeModal: modalManager.close,
+    openModal: modalManager.open,
 };
 
 /**
@@ -60,9 +86,21 @@ function setupEventListeners() {
         });
     }
     
-    // Brand select change
+    // Brand select change - правильна обробка
     const brandSelect = document.getElementById('carBrand');
     if (brandSelect) {
-        brandSelect.addEventListener('change', loadModels);
+        brandSelect.addEventListener('change', (e) => {
+            console.log('[Main] Brand changed to:', e.target.value);
+            loadModels(e.target.value);
+        });
     }
+    
+    // Close modal on background click
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
 }

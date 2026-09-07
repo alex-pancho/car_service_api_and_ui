@@ -13,55 +13,117 @@ export function getToken() {
 
 export function setToken(newToken) {
     token = newToken;
+    if (newToken) {
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newToken);
+    } else {
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    }
+}
+
+export function getUserInfo() {
+    // Спробуй отримати інформацію про користувача з JWT токену
+    try {
+        const tokenData = token ? JSON.parse(atob(token.split('.')[1])) : null;
+        return tokenData ? { username: tokenData.username || 'User' } : null;
+    } catch (error) {
+        return null;
+    }
 }
 
 export async function login(username, password) {
-    const response = await fetch(API.login, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
+    try {
+        const response = await fetch(API.login, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-    if (!response.ok) {
-        throw new Error('Невірний логін або пароль');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Невірний логін або пароль');
+        }
+
+        const data = await response.json();
+        token = data.access;
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access);
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh);
+        
+        console.log('[Auth] Login successful');
+        return { username, token: data.access };
+    } catch (error) {
+        console.error('[Auth] Login error:', error);
+        throw error;
     }
-
-    const data = await response.json();
-    token = data.access;
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access);
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh);
-
-    return { username, token: data.access };
 }
 
 export async function refreshToken() {
     const refresh = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-    if (!refresh) return false;
+    
+    if (!refresh) {
+        console.log('[Auth] ❌ No refresh token available');
+        return false;
+    }
 
     try {
+        console.log('[Auth] 🔄 Attempting to refresh token...');
         const response = await fetch(API.refresh, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh })
         });
 
-        if (!response.ok) return false;
+        if (!response.ok) {
+            console.error('[Auth] ❌ Refresh failed with status:', response.status);
+            const error = await response.json();
+            console.error('[Auth] ❌ Refresh error:', error);
+            
+            // Якщо refresh токен невалідний - повна logout
+            if (response.status === 401 || response.status === 400) {
+                console.log('[Auth] Refresh token invalid, clearing session');
+                forceLogout();
+            }
+            return false;
+        }
 
         const data = await response.json();
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access);
         token = data.access;
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access);
+        
+        // Оновлюємо refresh token, якщо він також повернувся
+        if (data.refresh) {
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh);
+        }
+        
+        console.log('[Auth] ✅ Token refreshed successfully');
+        console.log('[Auth] New token preview:', token.substring(0, 30) + '...');
         return true;
     } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error('[Auth] ❌ Token refresh failed:', error);
         return false;
     }
 }
 
+/**
+ * Logout with session clearing and reload
+ */
 export function logout() {
+    console.log('[Auth] Logging out...');
+    forceLogout();
+}
+
+/**
+ * Force logout without showing UI (internal use)
+ */
+export function forceLogout() {
     localStorage.clear();
     token = null;
     const ui = getUIManager();
     ui.showLogin();
+    window.location.reload();
+}
+
+export function checkAuth() {
+    return !!token;
 }
 
 export function isAuthenticated() {
